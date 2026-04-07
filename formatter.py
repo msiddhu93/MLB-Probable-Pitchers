@@ -45,81 +45,87 @@ def _format_game_time(game_date_utc):
         return "TBD"
 
 
-def _format_pitcher_block(pitcher, side):
+def _pitcher_vals(pitcher):
     """
-    Build a list of stat strings for one pitcher.
-
-    `side` is "home" or "away" — used to add the "vs" prefix for the away name line.
-    Returns a list of strings (one per display row).
+    Extract display-ready values from a pitcher dict.
+    Returns a dict of strings safe to pass straight to _row().
     """
     if not pitcher:
-        # TBD case — show a placeholder with blank lines to keep spacing consistent
-        prefix = "vs  " if side == "away" else "    "
-        return [
-            f"{prefix}Probable starter TBD",
-            "", "", "", "", ""    # blank rows to match the 6-row stat block
-        ]
-
-    name = pitcher.get("name", "Unknown")
-    hand = pitcher.get("hand", "?")
-    wl   = pitcher.get("wl",   "?-?")
-    era  = pitcher.get("era",  "-.--")
+        return None
 
     era_plus = pitcher.get("era_plus")
-    era_plus_str = f"ERA+ {era_plus:>4}" if era_plus is not None else "ERA+  N/A"
+    fip      = pitcher.get("fip")
 
-    fip  = pitcher.get("fip")
-    fip_str = f"{fip:.2f}" if fip is not None else "N/A"
-
-    last = pitcher.get("last_outing", "N/A")
-    form = pitcher.get("form",        "N/A")
-
-    prefix = "vs  " if side == "away" else "    "
-
-    return [
-        f"{prefix}{name} ({hand}HP)",
-        f"W-L   {wl}",
-        f"ERA   {era}  {era_plus_str}",
-        f"FIP   {fip_str}",
-        f"Last  {last}",
-        f"Form  {form}",
-    ]
+    return {
+        "name":  f"{pitcher.get('name', 'Unknown')} ({pitcher.get('hand', '?')}HP)",
+        "wl":    pitcher.get("wl", "?-?"),
+        "era":   f"{pitcher.get('era', '-.--')}  ERA+ {era_plus if era_plus is not None else 'N/A'}",
+        "fip":   f"{fip:.2f}" if fip is not None else "N/A",
+        "last":  pitcher.get("last_outing", "N/A"),
+        "form":  pitcher.get("form", "N/A"),
+    }
 
 
 # ── Public functions ──────────────────────────────────────────────────────────
 
 def format_game(game):
     """
-    Format one game as a multi-line string.
+    Format one game as a multi-line string with home on left, away on right.
 
     Layout:
       BOS (6-5) vs NYY (8-3)  •  1:05 PM ET
-      [home pitcher stats]    [away pitcher stats]  ← side by side
+
+        Brayan Bello (RHP)          vs  Gerrit Cole (RHP)
+        W-L   2-2                       W-L   3-1
+        ERA   3.42  ERA+ 118            ERA   1.89  ERA+ 215
+        ...
     """
-    home_name = game.get("home_team",   "???")
-    away_name = game.get("away_team",   "???")
     home_rec  = game.get("home_record", "?-?")
     away_rec  = game.get("away_record", "?-?")
     game_time = _format_game_time(game.get("game_date", ""))
 
-    header = f"{home_name} ({home_rec}) vs {away_name} ({away_rec})  •  {game_time} ET"
+    header = (
+        f"{game.get('home_team', '???')} ({home_rec})"
+        f" vs {game.get('away_team', '???')} ({away_rec})"
+        f"  •  {game_time} ET"
+    )
 
-    # Build per-pitcher row lists
-    home_rows = _format_pitcher_block(game.get("home_pitcher"), side="home")
-    away_rows = _format_pitcher_block(game.get("away_pitcher"), side="away")
-
-    # Zip the two columns together side by side
-    # The name row ("    Brayan Bello (RHP)") gets special treatment for alignment
     lines = [header, ""]
-    for i, (h, a) in enumerate(zip(home_rows, away_rows)):
-        if i == 0:
-            # Name row: home left-padded, away follows
-            lines.append(f"  {h:<{COL_W - 2}}{a}")
-        elif h.strip() == "" and a.strip() == "":
-            lines.append("")
-        else:
-            lines.append(_row(*h.split(None, 1), *a.split(None, 1))
-                         if (h.strip() and a.strip()) else f"  {h}")
+
+    h = _pitcher_vals(game.get("home_pitcher"))
+    a = _pitcher_vals(game.get("away_pitcher"))
+
+    if h and a:
+        # Name row — home left-padded, "vs" prefix on away
+        lines.append(f"  {h['name']:<{COL_W - 2}}vs  {a['name']}")
+        lines.append("")
+        # Stat rows — each label appears once, values aligned in two columns
+        lines.append(_row("W-L",  h["wl"],   a["wl"]))
+        lines.append(_row("ERA",  h["era"],  a["era"]))
+        lines.append(_row("FIP",  h["fip"],  a["fip"]))
+        lines.append(_row("Last", h["last"], a["last"]))
+        lines.append(_row("Form", h["form"], a["form"]))
+
+    elif h:
+        # Away starter TBD
+        lines.append(f"  {h['name']}")
+        lines.append("")
+        lines.append(f"  W-L  {h['wl']}    ERA  {h['era']}")
+        lines.append(f"  FIP  {h['fip']}    Last {h['last']}")
+        lines.append(f"  Form {h['form']}")
+        lines.append(f"  Away starter TBD")
+
+    elif a:
+        # Home starter TBD
+        lines.append(f"  Home starter TBD")
+        lines.append("")
+        lines.append(f"  vs  {a['name']}")
+        lines.append(f"      W-L  {a['wl']}    ERA  {a['era']}")
+        lines.append(f"      FIP  {a['fip']}    Last {a['last']}")
+        lines.append(f"      Form {a['form']}")
+
+    else:
+        lines.append("  Both starters TBD")
 
     return "\n".join(lines)
 
