@@ -56,7 +56,8 @@ def get_pitcher_season_stats(player_id):
     })
     resp.raise_for_status()
 
-    splits = resp.json().get("stats", [{}])[0].get("splits", [])
+    stats  = resp.json().get("stats", [])
+    splits = stats[0].get("splits", []) if stats else []
     return splits[0]["stat"] if splits else {}
 
 
@@ -79,7 +80,8 @@ def get_pitcher_game_log(player_id, num_starts=3):
     })
     resp.raise_for_status()
 
-    splits = resp.json().get("stats", [{}])[0].get("splits", [])
+    stats  = resp.json().get("stats", [])
+    splits = stats[0].get("splits", []) if stats else []
     # Reverse-slice: [-3:] gives us the last 3 items in the list
     return splits[-num_starts:] if splits else []
 
@@ -122,7 +124,8 @@ def get_league_era():
     })
     resp.raise_for_status()
 
-    splits = resp.json().get("stats", [{}])[0].get("splits", [])
+    stats  = resp.json().get("stats", [])
+    splits = stats[0].get("splits", []) if stats else []
 
     total_er = 0
     total_ip = 0.0
