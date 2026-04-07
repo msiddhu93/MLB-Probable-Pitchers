@@ -1,0 +1,6 @@
+# Python packages this project needs.
+# GitHub Actions will run: pip install -r requirements.txt
+# Locally, run the same command once to set up your environment.
+
+requests   # the only external library — handles all HTTP calls to the MLB API
+# Everything else (smtplib, datetime, zoneinfo) is built into Python 3.9+
