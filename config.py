@@ -16,9 +16,9 @@
 import os
 
 # ── Email ─────────────────────────────────────────────────────────────────────
-SENDER_EMAIL    = os.environ["msiddhu93@gmail.com"] # Gmail you're sending FROM
-SENDER_PASSWORD = os.environ["qvlq ysfa cilk lwrk"]    # Gmail App Password (not your real password)
-RECIPIENT_EMAIL = os.environ["msiddhu93@gmail.com"]    # Where the email is delivered
+SENDER_EMAIL    = os.environ["SENDER_EMAIL"]     # Gmail you're sending FROM
+SENDER_PASSWORD = os.environ["SENDER_PASSWORD"]  # Gmail App Password (not your real password)
+RECIPIENT_EMAIL = os.environ["RECIPIENT_EMAIL"]  # Where the email is delivered
 
 # ── Advanced stat constants ───────────────────────────────────────────────────
 
