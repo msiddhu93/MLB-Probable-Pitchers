@@ -15,8 +15,11 @@ def _parse_innings(ip_str):
     """
     Convert MLB's innings pitched notation to a true decimal.
 
-    "33.2" means 33 full innings + 2 outs = 33.667, not 33.2.
-    See mlb_api._parse_innings for the full explanation.
+    The API stores IP as "33.2" where the digit after the decimal is
+    OUTS, not tenths — so "33.2" means 33 full innings + 2 outs = 33.667.
+
+    This matters for FIP and quality start calculations — using plain
+    float("33.2") = 33.2 would silently produce wrong results.
     """
     try:
         parts = str(ip_str).split(".")
