@@ -5,10 +5,14 @@
 # in the right order and passes data between them.
 #
 # Pipeline:
-#   1. Fetch raw schedule data       (mlb_api.py)
-#   2. Enrich each pitcher with stats (mlb_api.py + stats.py)
-#   3. Build the email body           (formatter.py)
-#   4. Send the email                 (emailer.py)
+#   1. Fetch schedule + league ERA     (mlb_api.py)
+#   2. Enrich each game with pitchers  (mlb_api.py + stats.py)
+#   3. Build the email body            (formatter.py)
+#   4. Send the email                  (emailer.py)
+#
+# Helpers used in step 2:
+#   enrich_pitcher()  — builds full stat dict for one pitcher
+#   build_game_data() — processes one raw game into a display-ready dict
 # =============================================================================
 
 from datetime import date
@@ -20,7 +24,7 @@ import emailer
 import config
 
 
-# ── Step 1 helper: enrich one pitcher ────────────────────────────────────────
+# ── Helper: build full stat dict for one pitcher ─────────────────────────────
 
 def enrich_pitcher(raw_pitcher, league_era):
     """
@@ -68,7 +72,7 @@ def enrich_pitcher(raw_pitcher, league_era):
     }
 
 
-# ── Step 2 helper: process one game ──────────────────────────────────────────
+# ── Helper: process one raw game into a display-ready dict ───────────────────
 
 def build_game_data(raw_game, league_era):
     """
