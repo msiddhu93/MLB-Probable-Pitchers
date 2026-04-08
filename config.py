@@ -5,7 +5,7 @@
 #
 # IMPORTANT: credentials are read from environment variables, not typed here.
 # That means your Gmail password never lives in the code — it stays private
-# inside GitHub Secrets (we'll set that up in the walkthrough).
+# inside GitHub Secrets (Settings → Secrets and variables → Actions).
 #
 # Locally (for testing): set these in your terminal before running main.py:
 #   export SENDER_EMAIL="you@gmail.com"
