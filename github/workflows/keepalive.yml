@@ -2,6 +2,7 @@ name: Keepalive
 on:
   schedule:
     - cron: "0 0 * * 0"  # Runs every Sunday at midnight UTC
+     workflow_dispatch:
 permissions:
   actions: write
 jobs:
